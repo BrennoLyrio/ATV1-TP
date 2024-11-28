@@ -13,6 +13,17 @@ export default class ListagemClientes extends Listagem {
             console.log(`Nome: ` + cliente.nome);
             console.log(`Nome social: ` + cliente.nomeSocial);
             console.log(`CPF: ` + cliente.getCpf.getValor);
+
+            // Exibindo RGS
+            if (cliente.getRgs.length > 0) {
+                console.log(`RGs:`);
+                cliente.getRgs.forEach(rg => {
+                    console.log(`  RG: ${rg.getValor} - Data de Emissão: ${rg.getDataEmissao.toLocaleDateString()}`);
+                });
+            } else {
+                console.log(`RGs: Nenhum RG cadastrado`);
+            }
+
             if (cliente.getTelefones.length > 0) {
                 console.log(`Telefones:`);
                 cliente.getTelefones.forEach(telefone => {

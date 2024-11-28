@@ -1,6 +1,7 @@
 import Entrada from "../io/entrada"
 import Cliente from "../modelo/cliente"
 import CPF from "../modelo/cpf"
+import RG from "../modelo/rg"
 import Telefone from "../modelo/telefone"
 import Cadastro from "./cadastro"
 
@@ -23,9 +24,9 @@ export default class CadastroCliente extends Cadastro {
             }
             console.log(`\nErro: O nome deve conter apenas letras, tente novamente. \n`)
         }
-        
+
         let nomeSocial = this.entrada.receberTexto(`Por favor informe o nome social do cliente: `)
-        
+
 
         // Loop para garantir CPF único
         let valor: string;
@@ -86,6 +87,49 @@ export default class CadastroCliente extends Cadastro {
         let cpf = new CPF(valor, dataEmissao);
         let cliente = new Cliente(nome, nomeSocial, cpf);
 
+        let rgValor: string;
+        while (true) {
+            rgValor = this.entrada.receberTexto(`Por favor informe o número do RG (somente números): `);
+            if (!/^\d{9}$/.test(rgValor)) {
+                console.log(`\nErro: O RG deve conter 9 dígitos. Tente novamente.\n`);
+                continue;
+            }
+            break;
+        }
+
+        let rgData: string;
+        let rgDataValida = false;
+        let rgAno = 0, rgMes = 0, rgDia = 0;
+
+        while (!rgDataValida) {
+            rgData = this.entrada.receberTexto(`Por favor informe a data de emissão do RG (dd/mm/yyyy): `);
+            let partesDataRG = rgData.split('/');
+
+            if (partesDataRG.length !== 3) {
+                console.log(`\nErro: Data inválida. Tente novamente.\n`);
+                continue;
+            }
+
+            rgDia = Number(partesDataRG[0]);
+            rgMes = Number(partesDataRG[1]);
+            rgAno = Number(partesDataRG[2]);
+
+            if (rgAno < 1900 || rgAno > new Date().getFullYear()) {
+                console.log(`\nErro: O ano deve ser válido. Tente novamente.\n`);
+                continue;
+            }
+            if (rgMes < 1 || rgMes > 12 || rgDia < 1 || rgDia > 31) {
+                console.log(`\nErro: Mês ou dia inválido. Tente novamente.\n`);
+                continue;
+            }
+
+            rgDataValida = true;
+        }
+
+        let rgEmissao = new Date(rgAno, rgMes - 1, rgDia);
+        let rg = new RG(rgValor, rgEmissao);
+        cliente.getRgs.push(rg);
+
         //telefones
 
         while (true) {
@@ -95,36 +139,36 @@ export default class CadastroCliente extends Cadastro {
                 console.log(`\nErro: O DDD deve conter exatamente 2 dígitos. Tente novamente.\n`);
                 continue;
             }
-        
+
             let numero = this.entrada.receberTexto(`Por favor informe o número do telefone: `);
             if (!/^\d{8,9}$/.test(numero)) {
                 console.log(`\nErro: O número do telefone deve conter entre 8 e 9 dígitos. Tente novamente.\n`);
                 continue;
             }
-        
+
             // Verifica se o telefone (DDD e número) já existe na lista de telefones do cliente
             let telefoneExistente = this.clientes.some(cliente =>
                 cliente.getTelefones.some(telefone => telefone.getDdd === ddd && telefone.getNumero === numero)
             );
-        
+
             // Verifica se o telefone recém-adicionado é o mesmo que o último adicionado
             let telefoneRecente = cliente.getTelefones.some(telefone => telefone.getDdd === ddd && telefone.getNumero === numero);
-        
+
             if (telefoneExistente) {
                 console.log(`\nErro: Já existe um cliente com o telefone (${ddd}) ${numero}. Tente novamente.\n`);
                 continue;
             }
-        
+
             // Se o telefone foi recentemente adicionado, não permite a duplicação
             if (telefoneRecente) {
                 console.log(`\nErro: Este número de telefone já foi adicionado. Tente novamente.\n`);
                 continue;
             }
-        
+
             let telefone = new Telefone(ddd, numero);
             cliente.getTelefones.push(telefone);
             console.log(`Telefone (${ddd}) ${numero} adicionado com sucesso!`);
-        
+
             let adicionarOutro = this.entrada.receberTexto(`Deseja adicionar outro telefone? (s/n): `);
             if (adicionarOutro.toLowerCase() !== 's') {
                 break;

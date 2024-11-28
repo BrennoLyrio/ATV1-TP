@@ -1,6 +1,7 @@
 import Entrada from "../io/entrada";
 import Cliente from "../modelo/cliente";
 import Telefone from "../modelo/telefone";
+import RG from "../modelo/rg";
 import Edicao from "./editar";
 
 export default class EditarCliente extends Edicao {
@@ -34,22 +35,64 @@ export default class EditarCliente extends Edicao {
                 clienteEncontrado.nomeSocial = novoNomeSocial;
             }
 
-            // Edição do CPF
-            let novoCpf = this.entrada.receberTexto(`Insira o novo CPF (11 dígitos) ou pressione Enter para manter o atual: `);
-            if (novoCpf) {
-                if (/^\d{11}$/.test(novoCpf)) {
-                    let cpfExistente = this.clientes.some(cliente => cliente.getCpf.getValor === novoCpf);
-                    if (!cpfExistente) {
-                        clienteEncontrado.getCpf.setValor(novoCpf); // Atualizando o valor do CPF
-                    } else {
-                        console.log(`\nErro: Já existe um cliente com o CPF informado. O CPF não foi alterado.\n`);
+            // Edição de RGs
+            while (true) {
+                console.log(`\nRGS atuais:`);
+                clienteEncontrado.getRgs.forEach((rg, index) => {
+                    console.log(`${index + 1}. RG: ${rg.getValor}, Data de Emissão: ${rg.getDataEmissao.toLocaleDateString("pt-BR")}`);
+                });
+
+                console.log(`\nOpções:`);
+                console.log(`1. Adicionar RG`);
+                console.log(`2. Remover RG`);
+                console.log(`3. Concluir edição de RGs`);
+
+                let opcaoRg = this.entrada.receberTexto(`Escolha uma opção: `);
+
+                if (opcaoRg === "1") {
+                    let valorRg = this.entrada.receberTexto(`Informe o número do novo RG: `);
+                    if (!/^\d+$/.test(valorRg)) {
+                        console.log(`\nErro: O número do RG deve conter apenas dígitos. Tente novamente.\n`);
+                        continue;
                     }
+
+                    let dataEmissaoRg = this.entrada.receberTexto(`Informe a data de emissão do RG (formato dd/mm/yyyy): `);
+                    let partesData = dataEmissaoRg.split("/");
+                    if (partesData.length !== 3) {
+                        console.log(`\nErro: Data inválida. Tente novamente.\n`);
+                        continue;
+                    }
+
+                    let dia = Number(partesData[0]);
+                    let mes = Number(partesData[1]);
+                    let ano = Number(partesData[2]);
+                    if (isNaN(dia) || isNaN(mes) || isNaN(ano)) {
+                        console.log(`\nErro: Data inválida. Tente novamente.\n`);
+                        continue;
+                    }
+
+                    let dataEmissao = new Date(ano, mes - 1, dia);
+                    let novoRg = new RG(valorRg, dataEmissao);
+                    clienteEncontrado.getRgs.push(novoRg);
+                    console.log(`RG ${valorRg} adicionado com sucesso!`);
+                } else if (opcaoRg === "2") {
+                    let indiceRg = this.entrada.receberTexto(`Informe o número do RG que deseja remover (ex: 1): `);
+                    let indexRg = parseInt(indiceRg) - 1;
+
+                    if (indexRg >= 0 && indexRg < clienteEncontrado.getRgs.length) {
+                        let rgRemovido = clienteEncontrado.getRgs.splice(indexRg, 1)[0];
+                        console.log(`RG ${rgRemovido.getValor} removido com sucesso!`);
+                    } else {
+                        console.log(`\nErro: Opção inválida. Tente novamente.\n`);
+                    }
+                } else if (opcaoRg === "3") {
+                    break;
                 } else {
-                    console.log(`\nErro: O CPF deve conter exatamente 11 dígitos. O CPF não foi alterado.\n`);
+                    console.log(`\nErro: Opção inválida. Tente novamente.\n`);
                 }
             }
 
-            // Edição de Telefones (apenas se solicitado)
+            // Edição de Telefones
             while (true) {
                 console.log(`\nTelefones atuais:`);
                 clienteEncontrado.getTelefones.forEach((telefone, index) => {
